@@ -37,26 +37,29 @@
 
     // --- Mock Data Fallback ---
     const DEFAULT_TOOLS = [
-      { id: 1, model: "640102", name: "Harden 18pcs Professional Tool Set", price: 7500, oldPrice: 8200, description: "Complete repair kit with high-quality CR-V steel for industrial maintenance.", category: "Tool Sets", image: "https://images.unsplash.com/photo-1581244277943-fe4a9c777189?auto=format&fit=crop&q=80&w=400", isNew: true, stock: 45 },
-      { id: 2, model: "580112", name: "Harden Claw Hammer 0.50kg", price: 1450, oldPrice: 1600, description: "Shock-absorbing tubular handle with drop-forged high carbon steel head.", category: "Hand Tools", image: "https://images.unsplash.com/photo-1586864387967-d02ef85d93e8?auto=format&fit=crop&q=80&w=400", isNew: false, stock: 120 },
-      { id: 3, model: "750601", name: "Harden 20V Lithium-Ion Cordless Drill", price: 15800, oldPrice: 17500, description: "High-power 20V drill with 2-speed gearbox and 13mm chuck for tough jobs.", category: "Power Tools", image: "https://images.unsplash.com/photo-1540104539488-92a51bbc0410?auto=format&fit=crop&q=80&w=400", isNew: true, stock: 15 },
-      { id: 4, model: "750231", name: "Harden Angle Grinder 850W", price: 9200, oldPrice: 10500, description: "Industrial grade 115mm angle grinder for professional metal cutting and grinding.", category: "Power Tools", image: "https://images.unsplash.com/photo-1530124566582-aa61dd3c9dca?auto=format&fit=crop&q=80&w=400", isNew: false, stock: 22 },
-      { id: 5, model: "530106", name: "Harden 45pcs Screwdriver Bit Set", price: 1850, oldPrice: 2100, description: "Multi-functional bit set with magnetic holder. Precision engineered.", category: "Accessories", image: "https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&q=80&w=400", isNew: true, stock: 65 },
-      { id: 6, model: "610202", name: "Harden 5m Steel Measuring Tape", price: 650, oldPrice: 750, description: "Nylon coated blade with strong magnetic hook and anti-impact case.", category: "Measuring Tools", image: "https://images.unsplash.com/photo-1501720888122-c3226a27e4e1?auto=format&fit=crop&q=80&w=400", isNew: false, stock: 200 }
+      { id: 1, model: "640102", name: "Harden 18pcs Professional Tool Set", price: 7500, oldPrice: 8200, description: "Complete repair kit with high-quality CR-V steel for industrial maintenance. Includes wrenches, pliers, screwdrivers, and socket sets all in a durable hard case.", category: "Tool Sets", image: "https://images.unsplash.com/photo-1581244277943-fe4a9c777189?auto=format&fit=crop&q=80&w=400", isNew: true, stock: 45 },
+      { id: 2, model: "580112", name: "Harden Claw Hammer 0.50kg", price: 1450, oldPrice: 1600, description: "Shock-absorbing tubular handle with drop-forged high carbon steel head. Ergonomic grip designed to reduce fatigue during heavy repetitive striking.", category: "Hand Tools", image: "https://images.unsplash.com/photo-1586864387967-d02ef85d93e8?auto=format&fit=crop&q=80&w=400", isNew: false, stock: 120 },
+      { id: 3, model: "750601", name: "Harden 20V Lithium-Ion Cordless Drill", price: 15800, oldPrice: 17500, description: "High-power 20V drill with 2-speed gearbox and 13mm chuck for tough jobs. Features an LED work light and comes with 2 batteries and a fast charger.", category: "Power Tools", image: "https://images.unsplash.com/photo-1540104539488-92a51bbc0410?auto=format&fit=crop&q=80&w=400", isNew: true, stock: 15 },
+      { id: 4, model: "750231", name: "Harden Angle Grinder 850W", price: 9200, oldPrice: 10500, description: "Industrial grade 115mm angle grinder for professional metal cutting and grinding. Heavy-duty motor built for continuous operations.", category: "Power Tools", image: "https://images.unsplash.com/photo-1530124566582-aa61dd3c9dca?auto=format&fit=crop&q=80&w=400", isNew: false, stock: 22 },
+      { id: 5, model: "530106", name: "Harden 45pcs Screwdriver Bit Set", price: 1850, oldPrice: 2100, description: "Multi-functional bit set with magnetic holder. Precision engineered for perfect fit and durability. Essential for any toolbox.", category: "Accessories", image: "https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&q=80&w=400", isNew: true, stock: 65 },
+      { id: 6, model: "610202", name: "Harden 5m Steel Measuring Tape", price: 650, oldPrice: 750, description: "Nylon coated blade with strong magnetic hook and anti-impact case. Highly visible numbers and smooth locking mechanism.", category: "Measuring Tools", image: "https://images.unsplash.com/photo-1501720888122-c3226a27e4e1?auto=format&fit=crop&q=80&w=400", isNew: false, stock: 200 }
     ];
 
     function App() {
-      // States
+      // --- States ---
       const [view, setView] = useState('shop'); // 'shop' or 'admin'
       const [searchQuery, setSearchQuery] = useState('');
-      const [cart, setCart] = useState([]);
-      const [isMenuOpen, setIsMenuOpen] = useState(false);
       
+      // Cart & Modal States
+      const [cart, setCart] = useState([]);
+      const [isCartOpen, setIsCartOpen] = useState(false);
+      const [selectedTool, setSelectedTool] = useState(null);
+
+      // Data States
       const [products, setProducts] = useState(DEFAULT_TOOLS);
       const [isLoading, setIsLoading] = useState(true);
 
       // --- Google Sheets Integration ---
-      // Replace this URL with your Google Sheet Published CSV Link
       const GOOGLE_SHEET_CSV_URL = "REPLACE_THIS_WITH_YOUR_CSV_LINK";
 
       useEffect(() => {
@@ -100,15 +103,40 @@
       const filteredTools = useMemo(() => {
         return products.filter(tool => 
           tool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          tool.category.toLowerCase().includes(searchQuery.toLowerCase())
+          tool.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          tool.model.toLowerCase().includes(searchQuery.toLowerCase())
         );
       }, [searchQuery, products]);
 
-      const newArrivals = products.filter(tool => tool.isNew);
-
-      const addToCart = (id) => {
-        setCart(prev => [...prev, id]);
+      // --- Cart Logic ---
+      const addToCart = (tool, quantity = 1) => {
+        setCart(prev => {
+          const existing = prev.find(item => item.id === tool.id);
+          if (existing) {
+            return prev.map(item => item.id === tool.id ? { ...item, quantity: item.quantity + quantity } : item);
+          }
+          return [...prev, { ...tool, quantity }];
+        });
+        setSelectedTool(null); // Close modal
+        setIsCartOpen(true);   // Open cart drawer
       };
+
+      const updateCartQuantity = (id, delta) => {
+        setCart(prev => prev.map(item => {
+          if (item.id === id) {
+            const newQ = item.quantity + delta;
+            return newQ > 0 ? { ...item, quantity: newQ } : item;
+          }
+          return item;
+        }));
+      };
+
+      const removeFromCart = (id) => {
+        setCart(prev => prev.filter(item => item.id !== id));
+      };
+
+      const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      const cartItemsCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
       const contactUs = () => {
         window.open('https://wa.me/923328201152', '_blank');
@@ -192,12 +220,12 @@
                       </div>
                       <button 
                         className="relative p-2 hover:bg-white/10 rounded-full transition-colors"
-                        onClick={() => alert(`Items in cart: ${cart.length}`)}
+                        onClick={() => setIsCartOpen(true)}
                       >
                         <ShoppingCart className="w-6 h-6" />
-                        {cart.length > 0 && (
-                          <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
-                            {cart.length}
+                        {cartItemsCount > 0 && (
+                          <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-md">
+                            {cartItemsCount}
                           </span>
                         )}
                       </button>
@@ -317,42 +345,6 @@
                 </div>
               </section>
 
-              {/* --- Trust Bar --- */}
-              <div className="bg-white border-b border-slate-200">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-                    <div className="flex items-center gap-4">
-                      <Package className="w-10 h-10 text-orange-500" />
-                      <div>
-                        <p className="font-bold">Fast Delivery</p>
-                        <p className="text-xs text-slate-500">Across Pakistan</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <CheckCircle className="w-10 h-10 text-orange-500" />
-                      <div>
-                        <p className="font-bold">100% Genuine</p>
-                        <p className="text-xs text-slate-500">Harden Official</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <Clock className="w-10 h-10 text-orange-500" />
-                      <div>
-                        <p className="font-bold">24/7 Support</p>
-                        <p className="text-xs text-slate-500">Call Abbas Tapal</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <MapPin className="w-10 h-10 text-orange-500" />
-                      <div>
-                        <p className="font-bold">Cash on Delivery</p>
-                        <p className="text-xs text-slate-500">Pay when arrived</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
               {/* --- Main Shop Area --- */}
               <section id="all-products" className="bg-slate-100 py-20 lg:py-28">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -387,7 +379,7 @@
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {filteredTools.map(tool => (
-                      <ProductCard key={tool.id} tool={tool} onAdd={() => addToCart(tool.id)} />
+                      <ProductCard key={tool.id} tool={tool} onSelect={() => setSelectedTool(tool)} />
                     ))}
                   </div>
                   
@@ -402,23 +394,128 @@
             </>
           )}
 
-          {/* --- Footer --- */}
-          <footer className="bg-[#1A1A1A] text-white pt-20 pb-10">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-              <p className="text-slate-500 text-xs">
-                &copy; {new Date().getFullYear()} AB Industrial Supplies Pakistan. All Rights Reserved. Authorized Distributor under Abbas Tapal.
-              </p>
-            </div>
-          </footer>
+          {/* --- Cart Drawer --- */}
+          <AnimatePresence>
+            {isCartOpen && (
+              <>
+                <motion.div 
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                  onClick={() => setIsCartOpen(false)}
+                  className="fixed inset-0 bg-black/50 z-[60] backdrop-blur-sm"
+                />
+                <motion.div 
+                  initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
+                  className="fixed top-0 right-0 h-full w-full max-w-md bg-white z-[70] shadow-2xl flex flex-col"
+                >
+                  <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-[#1A1A1A] text-white">
+                    <h2 className="text-xl font-black flex items-center gap-2"><ShoppingCart /> Your Cart</h2>
+                    <button onClick={() => setIsCartOpen(false)} className="hover:text-orange-500 transition-colors"><X /></button>
+                  </div>
+                  <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50">
+                    {cart.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center h-full opacity-50">
+                        <ShoppingCart className="w-16 h-16 mb-4" />
+                        <p className="font-bold">Your cart is empty.</p>
+                      </div>
+                    ) : (
+                      cart.map(item => (
+                        <div key={item.id} className="flex gap-4 items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+                          <img src={item.image} className="w-16 h-16 object-cover rounded-xl bg-slate-50" />
+                          <div className="flex-1">
+                            <p className="font-bold text-sm leading-tight line-clamp-1">{item.name}</p>
+                            <p className="text-orange-600 font-black text-sm">Rs {item.price.toLocaleString()}</p>
+                            <div className="flex items-center gap-3 mt-2">
+                              <button onClick={() => updateCartQuantity(item.id, -1)} className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center font-bold hover:bg-slate-200">-</button>
+                              <span className="font-bold text-sm">{item.quantity}</span>
+                              <button onClick={() => updateCartQuantity(item.id, 1)} className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center font-bold hover:bg-slate-200">+</button>
+                            </div>
+                          </div>
+                          <button onClick={() => removeFromCart(item.id)} className="text-slate-300 hover:text-red-500 transition-colors">
+                            <X className="w-5 h-5" />
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                  
+                  {cart.length > 0 && (
+                    <div className="p-6 border-t border-slate-100 bg-white">
+                      <div className="flex justify-between items-center mb-6">
+                        <span className="text-slate-500 font-bold">Total Amount</span>
+                        <span className="text-2xl font-black text-slate-900">Rs {cartTotal.toLocaleString()}</span>
+                      </div>
+                      <CheckoutForm cart={cart} total={cartTotal} />
+                    </div>
+                  )}
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
+
+          {/* --- Product Details Modal --- */}
+          <AnimatePresence>
+            {selectedTool && (
+              <>
+                <motion.div 
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                  onClick={() => setSelectedTool(null)}
+                  className="fixed inset-0 bg-black/60 z-[80] backdrop-blur-sm p-4 flex items-center justify-center"
+                >
+                  <motion.div 
+                    initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+                    onClick={e => e.stopPropagation()}
+                    className="bg-white rounded-3xl overflow-hidden shadow-2xl max-w-4xl w-full flex flex-col md:flex-row max-h-[90vh]"
+                  >
+                    <div className="md:w-1/2 bg-slate-50 p-8 flex items-center justify-center relative">
+                      <button onClick={() => setSelectedTool(null)} className="absolute top-4 left-4 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md md:hidden"><X /></button>
+                      <img src={selectedTool.image} className="w-full h-auto max-h-80 object-contain mix-blend-multiply" />
+                    </div>
+                    <div className="md:w-1/2 p-8 md:p-10 flex flex-col overflow-y-auto">
+                      <button onClick={() => setSelectedTool(null)} className="absolute top-6 right-6 hidden md:block text-slate-400 hover:text-slate-900"><X className="w-8 h-8" /></button>
+                      <div className="mb-2 flex items-center gap-3">
+                        <span className="bg-orange-100 text-orange-600 text-xs font-black px-3 py-1 rounded-full uppercase tracking-widest">{selectedTool.category}</span>
+                        <span className="font-mono text-slate-500 font-bold text-sm">Model: #{selectedTool.model}</span>
+                      </div>
+                      <h2 className="text-3xl md:text-4xl font-black tracking-tight mb-4">{selectedTool.name}</h2>
+                      <div className="flex items-end gap-3 mb-6">
+                        <span className="text-4xl font-black text-slate-900">Rs {selectedTool.price.toLocaleString()}</span>
+                        {selectedTool.oldPrice && <span className="text-lg text-slate-400 line-through font-bold mb-1">Rs {selectedTool.oldPrice.toLocaleString()}</span>}
+                      </div>
+                      <p className="text-slate-600 text-base leading-relaxed mb-8 flex-1">{selectedTool.description}</p>
+                      
+                      <div className="bg-slate-50 p-4 rounded-2xl mb-8 flex items-center gap-4 border border-slate-100">
+                        <Package className="w-6 h-6 text-orange-500" />
+                        <div>
+                          <p className="font-bold text-slate-900 text-sm">Stock Status</p>
+                          <p className="text-xs text-slate-500">{selectedTool.stock > 0 ? `${selectedTool.stock} units available ready to ship` : 'Out of stock'}</p>
+                        </div>
+                      </div>
+
+                      <button 
+                        onClick={() => addToCart(selectedTool)}
+                        className="w-full py-4 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl font-black text-lg transition-colors flex items-center justify-center gap-2 shadow-xl shadow-orange-500/20"
+                      >
+                        <ShoppingCart className="w-5 h-5" /> Add to Cart
+                      </button>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
+
         </div>
       );
     }
 
-    function ProductCard({ tool, onAdd }) {
+    // --- Components ---
+
+    function ProductCard({ tool, onSelect }) {
       return (
         <motion.div
           whileHover={{ y: -5 }}
-          className="bg-white rounded-3xl p-4 shadow-sm hover:shadow-xl transition-all border border-slate-200 flex flex-col h-full group"
+          onClick={onSelect}
+          className="bg-white rounded-3xl p-4 shadow-sm hover:shadow-xl transition-all border border-slate-200 flex flex-col h-full group cursor-pointer"
         >
           <div className="relative aspect-square rounded-2xl overflow-hidden mb-6 bg-slate-50">
             <img 
@@ -435,16 +532,15 @@
           </div>
           
           <div className="flex-1 flex flex-col">
-            <div className="flex justify-between items-start mb-1">
+            <div className="flex justify-between items-start mb-2">
               <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{tool.category}</span>
               <span className="text-[10px] font-mono font-bold text-orange-500 bg-orange-50 px-2 py-0.5 rounded">#{tool.model}</span>
             </div>
-            <h3 className="font-black text-lg text-slate-800 leading-tight mb-3 transition-colors group-hover:text-orange-600">
+            <h3 className="font-black text-lg text-slate-800 leading-tight mb-3 transition-colors group-hover:text-orange-600 line-clamp-2">
               {tool.name}
             </h3>
-            <p className="text-sm text-slate-500 mb-6 flex-1 line-clamp-2">{tool.description}</p>
             
-            <div className="flex items-center justify-between mt-auto">
+            <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-50">
               <div>
                 <p className="text-xs text-slate-400 line-through font-bold">{tool.oldPrice ? `Rs ${tool.oldPrice.toLocaleString()}` : ''}</p>
                 <p className="text-2xl font-black text-slate-900 leading-none">
@@ -452,19 +548,51 @@
                   {tool.price.toLocaleString()}
                 </p>
               </div>
-              <button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onAdd();
-                }}
-                className="w-12 h-12 bg-slate-900 text-white rounded-full flex items-center justify-center hover:bg-orange-500 transition-all shadow-lg hover:shadow-orange-500/40"
-              >
-                <Plus className="w-6 h-6" />
-              </button>
+              <div className="w-10 h-10 bg-slate-50 text-slate-400 rounded-full flex items-center justify-center group-hover:bg-slate-900 group-hover:text-white transition-colors">
+                <ChevronRight className="w-5 h-5" />
+              </div>
             </div>
           </div>
         </motion.div>
       );
+    }
+
+    function CheckoutForm({ cart, total }) {
+      const [name, setName] = useState('');
+      const [phone, setPhone] = useState('');
+      const [address, setAddress] = useState('');
+
+      const placeOrder = (e) => {
+        e.preventDefault();
+        
+        let message = `*NEW ORDER - AB INDUSTRIAL*\n\n`;
+        message += `*Customer Details:*\n`;
+        message += `Name: ${name}\n`;
+        message += `Phone: ${phone}\n`;
+        message += `Address: ${address}\n\n`;
+        message += `*Order Items:*\n`;
+        
+        cart.forEach((item, index) => {
+          message += `${index + 1}. [${item.model}] ${item.name}\n`;
+          message += `   ${item.quantity} x Rs ${item.price} = Rs ${item.quantity * item.price}\n`;
+        });
+        
+        message += `\n*TOTAL: Rs ${total.toLocaleString()}*\n`;
+        
+        const encodedMessage = encodeURIComponent(message);
+        window.open(`https://wa.me/923328201152?text=${encodedMessage}`, '_blank');
+      };
+
+      return (
+        <form onSubmit={placeOrder} className="flex flex-col gap-3">
+          <input required type="text" placeholder="Full Name" value={name} onChange={e=>setName(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-orange-500 outline-none text-sm font-bold bg-slate-50" />
+          <input required type="tel" placeholder="Phone Number" value={phone} onChange={e=>setPhone(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-orange-500 outline-none text-sm font-bold bg-slate-50" />
+          <textarea required placeholder="Complete Delivery Address" value={address} onChange={e=>setAddress(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-orange-500 outline-none text-sm font-bold resize-none h-20 bg-slate-50"></textarea>
+          <button type="submit" className="w-full py-4 bg-orange-500 text-white rounded-xl font-black mt-2 hover:bg-orange-600 transition-colors shadow-xl shadow-orange-500/20">
+            Confirm & Send via WhatsApp
+          </button>
+        </form>
+      )
     }
 
     const root = createRoot(document.getElementById('root'));
