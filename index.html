@@ -59,16 +59,23 @@
       const [products, setProducts] = useState(DEFAULT_TOOLS);
       const [isLoading, setIsLoading] = useState(true);
 
-      // --- GitHub CSV Integration ---
-      // This reads from the local inventory.csv file sitting next to index.html
-      const CSV_URL = "./inventory.csv";
+      // --- GitHub Excel (.xlsx) Integration ---
+      // This reads from the local inventory.xlsx file sitting next to index.html
+      const EXCEL_URL = "./inventory.xlsx";
 
       useEffect(() => {
-        Papa.parse(CSV_URL, {
-          download: true,
-          header: true,
-          complete: (results) => {
-            const newProducts = results.data
+        fetch(EXCEL_URL)
+          .then(res => {
+            if (!res.ok) throw new Error("File not found");
+            return res.arrayBuffer();
+          })
+          .then(buffer => {
+            const workbook = XLSX.read(buffer, { type: "array" });
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+            const jsonData = XLSX.utils.sheet_to_json(worksheet);
+            
+            const newProducts = jsonData
               .filter(row => row.Name || row.name)
               .map((row, index) => ({
                 id: index + 1,
@@ -87,12 +94,11 @@
               setProducts(newProducts);
             }
             setIsLoading(false);
-          },
-          error: (err) => {
-            console.error("Failed to load Google Sheet, using fallback data:", err);
+          })
+          .catch(err => {
+            console.error("Failed to load Excel file, using fallback data:", err);
             setIsLoading(false);
-          }
-        });
+          });
       }, []);
 
       // --- Search Logic ---
@@ -267,9 +273,9 @@
                 <div>
                   <h3 className="font-black text-orange-800">How to update prices permanently:</h3>
                   <p className="text-sm text-orange-700 mt-1">
-                    Your website reads directly from the <strong>inventory.csv</strong> file in your GitHub repository. 
+                    Your website reads directly from the <strong>inventory.xlsx</strong> file in your GitHub repository. 
                     <br/><br/>
-                    To change a price or add a tool: Log into GitHub.com, open the <strong>inventory.csv</strong> file, click the pencil icon to edit, make your changes, and click "Commit changes". Vercel will automatically update the website!
+                    To change a price: Download the file from GitHub, edit it in Microsoft Excel on your computer, save it, and upload it back to GitHub to replace the old file. Vercel will automatically update the website!
                   </p>
                 </div>
               </div>
