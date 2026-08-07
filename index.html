@@ -450,7 +450,7 @@
                         <span className="text-slate-500 font-bold">Total Amount</span>
                         <span className="text-2xl font-black text-slate-900">Rs {cartTotal.toLocaleString()}</span>
                       </div>
-                      <CheckoutForm cart={cart} total={cartTotal} />
+                      <CheckoutForm cart={cart} total={cartTotal} clearCart={() => setCart([])} />
                     </div>
                   )}
                 </motion.div>
@@ -563,39 +563,77 @@
       );
     }
 
-    function CheckoutForm({ cart, total }) {
+    function CheckoutForm({ cart, total, clearCart }) {
       const [name, setName] = useState('');
-      const [phone, setPhone] = useState('');
       const [address, setAddress] = useState('');
+      const [cardNumber, setCardNumber] = useState('');
+      const [expiry, setExpiry] = useState('');
+      const [cvv, setCvv] = useState('');
+      
+      const [status, setStatus] = useState('idle'); // idle, processing, success
 
       const placeOrder = (e) => {
         e.preventDefault();
+        setStatus('processing');
         
-        let message = `*NEW ORDER - AB INDUSTRIAL*\n\n`;
-        message += `*Customer Details:*\n`;
-        message += `Name: ${name}\n`;
-        message += `Phone: ${phone}\n`;
-        message += `Address: ${address}\n\n`;
-        message += `*Order Items:*\n`;
-        
-        cart.forEach((item, index) => {
-          message += `${index + 1}. [${item.model}] ${item.name}\n`;
-          message += `   ${item.quantity} x Rs ${item.price} = Rs ${item.quantity * item.price}\n`;
-        });
-        
-        message += `\n*TOTAL: Rs ${total.toLocaleString()}*\n`;
-        
-        const encodedMessage = encodeURIComponent(message);
-        window.open(`https://wa.me/923328201152?text=${encodedMessage}`, '_blank');
+        // Simulate network request for credit card processing
+        setTimeout(() => {
+          setStatus('success');
+          clearCart();
+          
+          // Log simulated email to console
+          console.log("=========================================");
+          console.log("SIMULATED EMAIL NOTIFICATION SENT");
+          console.log(`To: owner@abindustrial.com`);
+          console.log(`Subject: New Order from ${name}`);
+          console.log(`Amount: Rs ${total.toLocaleString()}`);
+          console.log("=========================================");
+          
+        }, 2500);
       };
+
+      if (status === 'success') {
+        return (
+          <div className="flex flex-col items-center justify-center py-8 text-center animate-in zoom-in duration-500">
+            <div className="w-16 h-16 bg-green-100 text-green-500 rounded-full flex items-center justify-center mb-4 shadow-inner">
+              <CheckCircle className="w-8 h-8" />
+            </div>
+            <h3 className="text-xl font-black text-slate-900 mb-2">Payment Successful!</h3>
+            <p className="text-sm text-slate-500 font-bold">Your simulated order has been placed.</p>
+          </div>
+        );
+      }
 
       return (
         <form onSubmit={placeOrder} className="flex flex-col gap-3">
-          <input required type="text" placeholder="Full Name" value={name} onChange={e=>setName(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-orange-500 outline-none text-sm font-bold bg-slate-50" />
-          <input required type="tel" placeholder="Phone Number" value={phone} onChange={e=>setPhone(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-orange-500 outline-none text-sm font-bold bg-slate-50" />
-          <textarea required placeholder="Complete Delivery Address" value={address} onChange={e=>setAddress(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-orange-500 outline-none text-sm font-bold resize-none h-20 bg-slate-50"></textarea>
-          <button type="submit" className="w-full py-4 bg-orange-500 text-white rounded-xl font-black mt-2 hover:bg-orange-600 transition-colors shadow-xl shadow-orange-500/20">
-            Confirm & Send via WhatsApp
+          <div className="bg-orange-50 border border-orange-200 p-3 rounded-xl mb-2 flex items-start gap-3 text-orange-800 text-xs">
+            <Wrench className="w-4 h-4 flex-shrink-0 mt-0.5 text-orange-500" />
+            <p><strong>Sandbox Mode:</strong> Use any fake credit card numbers to test. No real money will be charged.</p>
+          </div>
+          
+          <input required disabled={status === 'processing'} type="text" placeholder="Full Name" value={name} onChange={e=>setName(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-slate-900 outline-none text-sm font-bold bg-slate-50" />
+          <textarea required disabled={status === 'processing'} placeholder="Delivery Address" value={address} onChange={e=>setAddress(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-slate-900 outline-none text-sm font-bold resize-none h-16 bg-slate-50"></textarea>
+          
+          <div className="relative mt-2">
+            <CreditCard className="absolute left-4 top-3.5 w-5 h-5 text-slate-400" />
+            <input required disabled={status === 'processing'} type="text" placeholder="Card Number" value={cardNumber} onChange={e=>setCardNumber(e.target.value)} className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-slate-900 outline-none text-sm font-bold font-mono bg-slate-50" />
+          </div>
+          
+          <div className="flex gap-3">
+            <input required disabled={status === 'processing'} type="text" placeholder="MM/YY" value={expiry} onChange={e=>setExpiry(e.target.value)} className="w-1/2 px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-slate-900 outline-none text-sm font-bold font-mono bg-slate-50" />
+            <input required disabled={status === 'processing'} type="text" placeholder="CVV" value={cvv} onChange={e=>setCvv(e.target.value)} className="w-1/2 px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-slate-900 outline-none text-sm font-bold font-mono bg-slate-50" />
+          </div>
+
+          <button 
+            disabled={status === 'processing'}
+            type="submit" 
+            className="w-full py-4 bg-slate-900 text-white rounded-xl font-black mt-2 hover:bg-slate-800 transition-colors shadow-xl disabled:bg-slate-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {status === 'processing' ? (
+              <><Wrench className="w-5 h-5 animate-spin" /> Processing...</>
+            ) : (
+              `Pay Rs ${total.toLocaleString()}`
+            )}
           </button>
         </form>
       )
