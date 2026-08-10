@@ -59,6 +59,21 @@
       const [products, setProducts] = useState(DEFAULT_TOOLS);
       const [isLoading, setIsLoading] = useState(true);
 
+      const handleLogoClick = (e) => {
+        if (e.detail >= 3) {
+          if (view === 'admin') {
+             setView('shop');
+             return;
+          }
+          const pin = prompt("Enter Admin PIN:");
+          if (pin === "1152") {
+            setView('admin');
+          } else if (pin !== null && pin !== "") {
+            alert("Incorrect PIN");
+          }
+        }
+      };
+
       // --- GitHub Excel (.xlsx) Integration ---
       // This reads from the local inventory.xlsx file sitting next to index.html
       const EXCEL_URL = "./inventory.xlsx";
@@ -177,15 +192,13 @@
           <nav className="sticky top-0 z-50 bg-[#1A1A1A] text-white shadow-xl">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex justify-between items-center h-20">
-                {/* Logo - Click to toggle Admin */}
+                {/* Logo - Triple Click for Admin */}
                 <div 
-                  className="flex items-center gap-2 cursor-pointer" 
-                  onClick={() => setView(view === 'shop' ? 'admin' : 'shop')}
-                  title="Click to toggle Admin Panel"
+                  className="flex items-center gap-2 cursor-pointer select-none" 
+                  onClick={handleLogoClick}
+                  title="AB Industrial Supplies"
                 >
-                  <div className="bg-orange-500 p-2 rounded-lg">
-                    <Wrench className="w-6 h-6 text-white" />
-                  </div>
+                  <Wrench className="w-6 h-6 text-orange-500" />
                   <span className="text-2xl font-black tracking-tighter text-white">
                     AB INDUSTRIAL <span className="text-orange-500">SUPPLIES</span>
                   </span>
